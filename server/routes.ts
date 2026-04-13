@@ -173,7 +173,7 @@ function connectAISStream(apiKey: string) {
 
   ws.on("open", () => {
     const sub = {
-      Apikey: apiKey,
+      APIKey: apiKey,
       BoundingBoxes: [[
         [HORMUZ_BBOX.minLat, HORMUZ_BBOX.minLon],
         [HORMUZ_BBOX.maxLat, HORMUZ_BBOX.maxLon],
