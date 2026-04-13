@@ -1,0 +1,67 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hormuz-map-app
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      SQLITE_PATH: /app/data/hormuz.db
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: hormuz
+      POSTGRES_USER: hormuz
+      POSTGRES_PASSWORD: hormuz_password_change_me
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - hormuz_sqlite_data:/app/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: hormuz-map-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hormuz
+      POSTGRES_USER: hormuz
+      POSTGRES_PASSWORD: hormuz_password_change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - hormuz_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hormuz -d hormuz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: hormuz-map-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - hormuz_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  hormuz_sqlite_data:
+  hormuz_postgres_data:
+  hormuz_redis_data:
